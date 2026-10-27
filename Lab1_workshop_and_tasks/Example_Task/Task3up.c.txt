@@ -1,0 +1,123 @@
+#define _XOPEN_SOURCE 700
+
+#include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <ftw.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/uio.h>
+#include <unistd.h>
+
+#define MAX_PATH 101
+#define MAX_PACKAGE_NAME 100
+#define MAX_VERSION 100
+
+#define ERR(source) (perror(source), fprintf(stderr, "%s:%d\n", __FILE__, __LINE__), exit(EXIT_FAILURE))
+
+void usage(char* note){
+
+}
+
+
+int main(int argc, char** argv)
+{
+    int c;
+    int creation = 0;
+    char* env_name = NULL;
+    while ((c = getopt(argc, argv, "cv:i:r:")) != -1)
+        switch (c)
+        {
+            case 'c':
+                if(creation == 2){
+                    printf("[-c]: One environment was already created\n");
+                    break;
+                }
+                creation = 1;
+                break;
+
+            case 'v':
+                if(creation == 1){
+                if (mkdir(optarg, 0755) != 0)
+                {
+                    if (errno == EEXIST){
+                        printf("Folder %s already exists\n", optarg);
+                        env_name = optarg;
+                        break;
+                    }
+                    else
+                        ERR("mkdir");
+                }
+                env_name = optarg;
+                chdir(env_name);
+                FILE *s1;
+                if ((s1 = fopen("requirements", "w+")) == NULL)
+                    ERR("fopen");
+                fclose(s1);
+                creation = 2;
+                chdir("..");
+                }
+                env_name = optarg;
+                break;
+
+            case 'i':
+                if(env_name == NULL){
+                    printf("[-i]: No environment selected\n");
+                    break;
+                }
+                chdir(env_name);
+
+                char* line = optarg;
+                char name[MAX_PACKAGE_NAME + 1];
+                char version[MAX_VERSION + 1];
+                char* separator = strstr(line, "==");
+                size_t package_len = separator == NULL ? 0 : separator - line;
+                size_t version_len = separator == NULL ? 0 : strlen(separator + 2);
+                if(separator == NULL || package_len == 0 || version_len == 0 ||
+                    package_len > MAX_PACKAGE_NAME || version_len > MAX_VERSION ||
+                    memchr(line, '=', package_len) != NULL ||
+                    strchr(separator + 2, '=') != NULL)
+                    {
+                        printf("[-i]: incorrect format/input\n");
+                        break;
+                    }
+
+                memcpy(name, line, package_len);
+                name[package_len] = '\0';
+                memcpy(version, separator + 2, version_len + 1);
+
+                FILE *s1;
+                if ((s1 = fopen("requirements", "a+")) == NULL)
+                    ERR("fopen");
+                fprintf(s1, "%s %s", name, version);
+                fclose(s1);
+                if(!access(name, F_OK)){
+                    printf("[-i]: Package %s already exists in %s\n", name, env_name);
+                    chdir("..");
+                    break;
+                }
+                FILE *s2;
+                if ((s2 = fopen(name, "w")) == NULL)
+                    ERR("fopen");
+                fclose(s2);
+                if(chmod(name, 0444))
+                    ERR("chmod");
+                chdir("..");
+                env_name = NULL; //resetting environment
+                break;
+
+            case 'r':
+                //TO DO
+                break;
+
+            case '?':
+            default:
+                usage(argv[0]);
+        }
+    return EXIT_SUCCESS;
+}
