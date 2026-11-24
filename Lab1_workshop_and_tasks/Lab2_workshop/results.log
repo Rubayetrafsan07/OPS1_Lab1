@@ -1,0 +1,19 @@
+Temporary directory: /tmp/sop1-workshop-f5Vq8q
+POSIX: WRITE AND READ
+  write block=1     1351.977 ms  OK
+  read block=1     1186.053 ms  OK
+  write block=4096     0.711 ms  OK
+  read block=4096     0.357 ms  OK
+C STREAMS: FWRITE AND FREAD
+  fwrite block=1       37.052 ms  OK
+  fread block=1       75.345 ms  OK
+  fwrite block=4096     0.770 ms  OK
+  fread block=4096     0.425 ms  OK
+C STREAMS: CHARACTER AND FORMATTED I/O
+  fputc               9.577 ms  OK
+  fgetc               6.379 ms  OK
+  fscanf             123.445 ms  OK
+WAITING FOR EVENTS
+  busy wall=  600.0 ms  CPU=  599.0 ms  expirations=20  successful_reads=20  avg delay=  0.00 ms  max delay=  0.01 ms  OK
+  sleep wall=  604.5 ms  CPU=    1.5 ms  expirations=20  successful_reads=20  avg delay=  1.98 ms  max delay=  4.45 ms  OK
+  poll wall=  600.5 ms  CPU=    1.6 ms  expirations=20  successful_reads=20  avg delay=  0.30 ms  max delay=  0.55 ms  OK
